@@ -156,7 +156,7 @@ export default function Rooms() {
       </div>
 
       {/* Legend */}
-      <div className="flex items-center gap-5 mb-4 text-xs text-slate-500">
+      <div className="flex items-center gap-3 sm:gap-5 mb-4 text-xs text-slate-500 flex-wrap">
         <LegendDot color="bg-slate-100 border-slate-200" label="Available" />
         <LegendDot color="bg-primary-50 border-primary-200" label="Occupied" />
         <LegendDot
@@ -172,7 +172,7 @@ export default function Rooms() {
           No rooms match your search.
         </div>
       ) : (
-        <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 xl:grid-cols-10 gap-3">
+        <div className="grid grid-cols-3 sm:grid-cols-5 md:grid-cols-6 lg:grid-cols-8 xl:grid-cols-10 gap-2 sm:gap-3">
           {filteredRooms.map((room) => (
             <RoomCell
               key={room}

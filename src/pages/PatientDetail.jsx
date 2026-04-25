@@ -1,10 +1,16 @@
-import { useParams, useNavigate } from 'react-router-dom';
-import { useApp } from '../context/AppContext';
-import Layout from '../components/Layout';
-import TempChart from '../components/TempChart';
-import { formatDate, consecutiveFeverFreeDays, isFever, daysBetween, todayStr } from '../lib/clinical';
-import { FEVER_FREE_DAYS_REQUIRED } from '../lib/constants';
-import { ArrowLeft, FileText, Calendar, MapPin, User } from 'lucide-react';
+import { useParams, useNavigate } from "react-router-dom";
+import { useApp } from "../context/AppContext";
+import Layout from "../components/Layout";
+import TempChart from "../components/TempChart";
+import {
+  formatDate,
+  consecutiveFeverFreeDays,
+  isFever,
+  daysBetween,
+  todayStr,
+} from "../lib/clinical";
+import { FEVER_FREE_DAYS_REQUIRED } from "../lib/constants";
+import { ArrowLeft, FileText, Calendar, MapPin, User } from "lucide-react";
 
 export default function PatientDetail() {
   const { id } = useParams();
@@ -23,29 +29,54 @@ export default function PatientDetail() {
   }
 
   const streak = consecutiveFeverFreeDays(patient);
-  const stayLength = daysBetween(patient.admittedOn, patient.dischargedOn || patient.deceasedOn || todayStr());
-  const sortedTemps = [...patient.temps].sort((a, b) => b.date.localeCompare(a.date));
+  const stayLength = daysBetween(
+    patient.admittedOn,
+    patient.dischargedOn || patient.deceasedOn || todayStr(),
+  );
+  const sortedTemps = [...patient.temps].sort((a, b) =>
+    b.date.localeCompare(a.date),
+  );
 
   return (
     <Layout
       title={patient.name}
       subtitle={`${patient.id} · Room ${patient.room} · Age ${patient.age}`}
       actions={
-        <button onClick={() => navigate(-1)} className="btn-secondary">
-          <ArrowLeft className="w-4 h-4" /> Back
-        </button>
+        <div className="flex gap-2 flex-wrap w-full sm:w-auto">
+          <button
+            onClick={() => navigate(-1)}
+            className="btn-secondary flex-1 sm:flex-none"
+          >
+            <ArrowLeft className="w-4 h-4" /> Back
+          </button>
+          {canDischarge && (
+            <button
+              onClick={() => setShowDischargeConfirm(true)}
+              className="btn-primary flex-1 sm:flex-none"
+            >
+              <DoorOpen className="w-4 h-4" />
+              Discharge
+            </button>
+          )}
+        </div>
       }
     >
       {/* Status banner */}
       <div className="mb-6">
-        <span className={`badge text-sm px-3 py-1 ${
-          patient.status === 'admitted' ? 'bg-primary-50 text-primary-700' :
-          patient.status === 'discharged' ? 'bg-green-50 text-success' :
-          'bg-red-50 text-critical'
-        }`}>
-          {patient.status === 'admitted' ? 'Currently admitted' :
-           patient.status === 'discharged' ? `Discharged on ${formatDate(patient.dischargedOn)}` :
-           `Deceased on ${formatDate(patient.deceasedOn)}`}
+        <span
+          className={`badge text-sm px-3 py-1 ${
+            patient.status === "admitted"
+              ? "bg-primary-50 text-primary-700"
+              : patient.status === "discharged"
+                ? "bg-green-50 text-success"
+                : "bg-red-50 text-critical"
+          }`}
+        >
+          {patient.status === "admitted"
+            ? "Currently admitted"
+            : patient.status === "discharged"
+              ? `Discharged on ${formatDate(patient.dischargedOn)}`
+              : `Deceased on ${formatDate(patient.deceasedOn)}`}
         </span>
       </div>
 
@@ -66,16 +97,27 @@ export default function PatientDetail() {
               Reading log
             </h3>
             {sortedTemps.length === 0 ? (
-              <div className="text-sm text-slate-400 italic">No readings recorded.</div>
+              <div className="text-sm text-slate-400 italic">
+                No readings recorded.
+              </div>
             ) : (
               <div className="divide-y divide-slate-100 -mx-6">
                 {sortedTemps.map((t, i) => (
-                  <div key={i} className="px-6 py-3 flex items-center justify-between text-sm">
+                  <div
+                    key={i}
+                    className="px-6 py-3 flex items-center justify-between text-sm"
+                  >
                     <div>
-                      <div className="font-medium text-slate-900">{formatDate(t.date)}</div>
-                      <div className="text-xs text-slate-500">{t.recordedBy} · {t.time}</div>
+                      <div className="font-medium text-slate-900">
+                        {formatDate(t.date)}
+                      </div>
+                      <div className="text-xs text-slate-500">
+                        {t.recordedBy} · {t.time}
+                      </div>
                     </div>
-                    <div className={`font-display text-xl ${isFever(t.value) ? 'text-critical' : 'text-success'}`}>
+                    <div
+                      className={`font-display text-xl ${isFever(t.value) ? "text-critical" : "text-success"}`}
+                    >
                       {t.value}°F
                     </div>
                   </div>
@@ -112,7 +154,9 @@ export default function PatientDetail() {
         {/* Right: sidebar */}
         <aside className="space-y-4">
           <div className="card p-5">
-            <h3 className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-4">Details</h3>
+            <h3 className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-4">
+              Details
+            </h3>
             <dl className="space-y-3 text-sm">
               <div className="flex items-start gap-2.5">
                 <User className="w-4 h-4 text-slate-400 mt-0.5" />
@@ -132,30 +176,41 @@ export default function PatientDetail() {
                 <Calendar className="w-4 h-4 text-slate-400 mt-0.5" />
                 <div>
                   <dt className="text-xs text-slate-500">Admitted</dt>
-                  <dd className="font-medium">{formatDate(patient.admittedOn)}</dd>
+                  <dd className="font-medium">
+                    {formatDate(patient.admittedOn)}
+                  </dd>
                 </div>
               </div>
             </dl>
           </div>
 
           <div className="card p-5">
-            <h3 className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-4">Clinical status</h3>
+            <h3 className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-4">
+              Clinical status
+            </h3>
             <div className="space-y-3">
               <div>
                 <div className="text-xs text-slate-500">Fever-free streak</div>
                 <div className="font-display text-2xl text-slate-900">
-                  {streak}<span className="text-base text-slate-400"> / {FEVER_FREE_DAYS_REQUIRED} days</span>
+                  {streak}
+                  <span className="text-base text-slate-400">
+                    {" "}
+                    / {FEVER_FREE_DAYS_REQUIRED} days
+                  </span>
                 </div>
               </div>
               <div>
                 <div className="text-xs text-slate-500">Length of stay</div>
                 <div className="font-display text-2xl text-slate-900">
-                  {stayLength}<span className="text-base text-slate-400"> days</span>
+                  {stayLength}
+                  <span className="text-base text-slate-400"> days</span>
                 </div>
               </div>
               <div>
                 <div className="text-xs text-slate-500">Total readings</div>
-                <div className="font-display text-2xl text-slate-900">{patient.temps.length}</div>
+                <div className="font-display text-2xl text-slate-900">
+                  {patient.temps.length}
+                </div>
               </div>
             </div>
           </div>
