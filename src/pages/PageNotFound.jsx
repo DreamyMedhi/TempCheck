@@ -1,116 +1,88 @@
-import {
-  Thermometer,
-  Stethoscope,
-  CheckCircle2,
-  Clock,
-  AlertTriangle,
-  DoorOpen,
-} from "lucide-react";
-import {
-  hasTempToday,
-  hasVisitToday,
-  consecutiveFeverFreeDays,
-  isDischargeEligible,
-  isFever,
-  formatDate,
-} from "../lib/clinical";
-import { FEVER_FREE_DAYS_REQUIRED } from "../lib/constants";
+import { useNavigate } from "react-router-dom";
+import { useApp } from "../context/AppContext";
+import { useSmartBack } from "../lib/useSmartBack";
+import { Home, ArrowLeft, Compass } from "lucide-react";
 
-export default function PatientCard({ patient, onClick, highlight }) {
-  const latest = patient.temps[patient.temps.length - 1];
-  const streak = consecutiveFeverFreeDays(patient);
-  const eligible = isDischargeEligible(patient);
-  const isAdmitted = patient.status === "admitted";
+const HOME_BY_ROLE = {
+  nurse: "/nurse",
+  doctor: "/doctor",
+  admin: "/admin",
+  head_doctor: "/dashboard",
+};
+
+export default function PageNotFound() {
+  const navigate = useNavigate();
+  const handleBack = useSmartBack();
+  const { currentUser } = useApp();
+
+  const homeRoute = currentUser ? HOME_BY_ROLE[currentUser.role] : "/";
+  const homeLabel = currentUser ? "Back to dashboard" : "Back to sign in";
 
   return (
-    <button
-      onClick={onClick}
-      className={`w-full text-left card hover:shadow-card-hover transition p-5 ${
-        highlight ? "ring-2 ring-primary-400 ring-offset-2" : ""
-      }`}
-    >
-      <div className="flex items-start justify-between gap-4">
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2 mb-1">
-            <span className="font-mono text-xs text-slate-400">
-              {patient.id}
-            </span>
-            <span className="text-xs text-slate-400">·</span>
-            <span className="text-xs text-slate-500">Room {patient.room}</span>
+    <div className="min-h-screen flex flex-col relative overflow-hidden">
+      {/* Ambient background */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute -top-24 -right-24 w-96 h-96 rounded-full bg-primary-100 blur-3xl opacity-40" />
+        <div className="absolute top-1/3 -left-24 w-80 h-80 rounded-full bg-primary-50 blur-3xl opacity-50" />
+      </div>
+
+      <div className="relative flex-1 flex flex-col items-center justify-center px-6 py-12">
+        <div className="w-full max-w-xl text-center">
+          {/* Brand */}
+          <div className="flex items-center gap-3 mb-12 justify-center">
+            <div className="w-11 h-11 rounded-xl bg-primary-600 flex items-center justify-center text-white font-bold">
+              TC
+            </div>
+            <div className="text-left">
+              <div className="font-display text-2xl text-slate-900 leading-none">
+                TempCheck
+              </div>
+              <div className="text-xs text-slate-500 tracking-wide uppercase mt-1">
+                Facility Operations
+              </div>
+            </div>
           </div>
-          <h3 className="font-semibold text-slate-900 truncate">
-            {patient.name}
-          </h3>
-          <div className="text-xs text-slate-500 mt-0.5">
-            Age {patient.age} · Admitted {formatDate(patient.admittedOn)}
+
+          {/* Compass icon block */}
+          <div className="inline-flex items-center justify-center w-20 h-20 rounded-2xl bg-primary-50 text-primary-600 mb-6">
+            <Compass className="w-9 h-9" strokeWidth={1.75} />
           </div>
+
+          {/* Big 404 */}
+          <div className="font-display text-7xl text-slate-900 leading-none mb-3">
+            404
+          </div>
+
+          {/* Headline */}
+          <h1 className="font-display text-3xl text-slate-900 leading-tight mb-3">
+            Page not found
+          </h1>
+
+          {/* Body copy */}
+          <p className="text-slate-500 max-w-md mx-auto mb-8">
+            The page you're looking for doesn't exist or may have been moved.
+            Let's get you back to where you can be useful.
+          </p>
+
+          {/* Actions */}
+          <div className="flex items-center justify-center gap-3 flex-wrap">
+            <button onClick={handleBack} className="btn-secondary">
+              <ArrowLeft className="w-4 h-4" />
+              Go back
+            </button>
+            <button onClick={() => navigate(homeRoute)} className="btn-primary">
+              <Home className="w-4 h-4" />
+              {homeLabel}
+            </button>
+          </div>
+
+          {/* Subtle footer */}
+          <p className="text-xs text-slate-400 mt-12">
+            If you believe this is an error, please contact your facility
+            administrator.
+          </p>
         </div>
-
-        {/* Latest temp — only show for admitted patients with readings */}
-        {isAdmitted && latest && (
-          <div
-            className={`flex items-baseline gap-0.5 ${isFever(latest.value) ? "text-critical" : "text-success"}`}
-          >
-            <span className="font-display text-2xl leading-none">
-              {latest.value}
-            </span>
-            <span className="text-xs font-medium">°F</span>
-          </div>
-        )}
       </div>
-
-      {/* Status badges — different sets for admitted vs. closed cases */}
-      <div className="flex items-center flex-wrap gap-2 mt-4">
-        {isAdmitted ? (
-          <>
-            {/* Today's temp status */}
-            <span
-              className={`badge ${hasTempToday(patient) ? "bg-green-50 text-success" : "bg-amber-50 text-warning"}`}
-            >
-              <Thermometer className="w-3 h-3" />
-              {hasTempToday(patient) ? "Temp logged today" : "Temp pending"}
-            </span>
-
-            {/* Today's visit status */}
-            <span
-              className={`badge ${hasVisitToday(patient) ? "bg-green-50 text-success" : "bg-slate-100 text-slate-600"}`}
-            >
-              <Stethoscope className="w-3 h-3" />
-              {hasVisitToday(patient) ? "Visited" : "Visit pending"}
-            </span>
-
-            {/* Discharge streak */}
-            {eligible ? (
-              <span className="badge bg-primary-50 text-primary-700">
-                <CheckCircle2 className="w-3 h-3" />
-                Discharge eligible
-              </span>
-            ) : streak > 0 ? (
-              <span className="badge bg-slate-100 text-slate-600">
-                <Clock className="w-3 h-3" />
-                {streak}/{FEVER_FREE_DAYS_REQUIRED} fever-free days
-              </span>
-            ) : null}
-
-            {patient.dischargeFlagged && (
-              <span className="badge bg-primary-100 text-primary-800">
-                <AlertTriangle className="w-3 h-3" />
-                Flagged for discharge
-              </span>
-            )}
-          </>
-        ) : patient.status === "discharged" ? (
-          <span className="badge bg-green-50 text-success">
-            <DoorOpen className="w-3 h-3" />
-            Discharged on {formatDate(patient.dischargedOn)}
-          </span>
-        ) : patient.status === "deceased" ? (
-          <span className="badge bg-red-50 text-critical">
-            <AlertTriangle className="w-3 h-3" />
-            Deceased on {formatDate(patient.deceasedOn)}
-          </span>
-        ) : null}
-      </div>
-    </button>
+    </div>
   );
 }
