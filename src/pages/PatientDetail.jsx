@@ -1,6 +1,9 @@
+import { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useApp } from "../context/AppContext";
+import { useSmartBack } from "../lib/useSmartBack";
 import Layout from "../components/Layout";
+import Modal from "../components/Modal";
 import TempChart from "../components/TempChart";
 import {
   formatDate,
@@ -10,18 +13,29 @@ import {
   todayStr,
 } from "../lib/clinical";
 import { FEVER_FREE_DAYS_REQUIRED } from "../lib/constants";
-import { ArrowLeft, FileText, Calendar, MapPin, User } from "lucide-react";
+import {
+  ArrowLeft,
+  FileText,
+  Calendar,
+  MapPin,
+  User,
+  DoorOpen,
+  CheckCircle2,
+} from "lucide-react";
 
 export default function PatientDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { patients } = useApp();
+  const handleBack = useSmartBack("/patients");
+  const { patients, currentUser, executeDischarge, showToast } = useApp();
   const patient = patients.find((p) => p.id === id);
+
+  const [showDischargeConfirm, setShowDischargeConfirm] = useState(false);
 
   if (!patient) {
     return (
       <Layout title="Patient not found">
-        <button onClick={() => navigate(-1)} className="btn-secondary">
+        <button onClick={handleBack} className="btn-secondary">
           <ArrowLeft className="w-4 h-4" /> Back
         </button>
       </Layout>
@@ -37,6 +51,22 @@ export default function PatientDetail() {
     b.date.localeCompare(a.date),
   );
 
+  // Authorization: doctors, head doctors, and admin can discharge a flagged patient.
+  const canDischarge =
+    ["doctor", "head_doctor", "admin"].includes(currentUser?.role) &&
+    patient.dischargeFlagged &&
+    patient.status === "admitted";
+
+  const handleDischarge = () => {
+    executeDischarge(patient.id);
+    showToast(
+      `${patient.name} discharged · Bed ${patient.room} now available`,
+      "success",
+    );
+    setShowDischargeConfirm(false);
+    navigate("/patients");
+  };
+
   return (
     <Layout
       title={patient.name}
@@ -44,7 +74,7 @@ export default function PatientDetail() {
       actions={
         <div className="flex gap-2 flex-wrap w-full sm:w-auto">
           <button
-            onClick={() => navigate(-1)}
+            onClick={handleBack}
             className="btn-secondary flex-1 sm:flex-none"
           >
             <ArrowLeft className="w-4 h-4" /> Back
@@ -62,7 +92,7 @@ export default function PatientDetail() {
       }
     >
       {/* Status banner */}
-      <div className="mb-6">
+      <div className="mb-6 flex flex-wrap items-center gap-2">
         <span
           className={`badge text-sm px-3 py-1 ${
             patient.status === "admitted"
@@ -78,12 +108,18 @@ export default function PatientDetail() {
               ? `Discharged on ${formatDate(patient.dischargedOn)}`
               : `Deceased on ${formatDate(patient.deceasedOn)}`}
         </span>
+        {patient.dischargeFlagged && patient.status === "admitted" && (
+          <span className="badge bg-primary-100 text-primary-800 text-sm px-3 py-1">
+            <CheckCircle2 className="w-3.5 h-3.5" />
+            Flagged for discharge by {patient.dischargeFlaggedBy} on{" "}
+            {formatDate(patient.dischargeFlaggedOn)}
+          </span>
+        )}
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Left: main */}
         <div className="lg:col-span-2 space-y-6">
-          {/* Chart */}
           <section className="card p-6">
             <h3 className="text-sm font-semibold text-slate-900 uppercase tracking-wide mb-4">
               Temperature history
@@ -91,7 +127,6 @@ export default function PatientDetail() {
             <TempChart temps={patient.temps} />
           </section>
 
-          {/* Reading log */}
           <section className="card p-6">
             <h3 className="text-sm font-semibold text-slate-900 uppercase tracking-wide mb-4">
               Reading log
@@ -126,7 +161,6 @@ export default function PatientDetail() {
             )}
           </section>
 
-          {/* Notes */}
           <section className="card p-6">
             <h3 className="text-sm font-semibold text-slate-900 uppercase tracking-wide mb-4">
               Clinical notes
@@ -216,6 +250,58 @@ export default function PatientDetail() {
           </div>
         </aside>
       </div>
+
+      {/* Discharge confirmation modal */}
+      <Modal
+        open={showDischargeConfirm}
+        onClose={() => setShowDischargeConfirm(false)}
+        title="Confirm discharge"
+        footer={
+          <>
+            <button
+              className="btn-secondary"
+              onClick={() => setShowDischargeConfirm(false)}
+            >
+              Cancel
+            </button>
+            <button className="btn-primary" onClick={handleDischarge}>
+              <DoorOpen className="w-4 h-4" />
+              Confirm discharge
+            </button>
+          </>
+        }
+      >
+        <div className="space-y-4">
+          <p className="text-sm text-slate-700">
+            Are you sure you want to discharge <b>{patient.name}</b> from Room{" "}
+            <b>{patient.room}</b>?
+          </p>
+          <div className="rounded-lg bg-slate-50 p-4 text-sm space-y-2">
+            <div className="flex justify-between">
+              <span className="text-slate-500">Length of stay</span>
+              <span className="font-medium text-slate-900">
+                {stayLength} days
+              </span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-slate-500">Fever-free streak</span>
+              <span className="font-medium text-slate-900">{streak} days</span>
+            </div>
+            {patient.dischargeFlaggedBy && (
+              <div className="flex justify-between">
+                <span className="text-slate-500">Flagged by</span>
+                <span className="font-medium text-slate-900">
+                  {patient.dischargeFlaggedBy}
+                </span>
+              </div>
+            )}
+          </div>
+          <div className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+            This action will free up Room {patient.room} immediately and cannot
+            be undone.
+          </div>
+        </div>
+      </Modal>
     </Layout>
   );
 }

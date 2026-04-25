@@ -1,8 +1,8 @@
 import { useNavigate } from "react-router-dom";
 import { useApp } from "../context/AppContext";
+import { useSmartBack } from "../lib/useSmartBack";
 import { Home, ArrowLeft, Compass } from "lucide-react";
 
-// Where each role's "home" lives — used to send users back to the right place
 const HOME_BY_ROLE = {
   nurse: "/nurse",
   doctor: "/doctor",
@@ -12,6 +12,7 @@ const HOME_BY_ROLE = {
 
 export default function PageNotFound() {
   const navigate = useNavigate();
+  const handleBack = useSmartBack();
   const { currentUser } = useApp();
 
   const homeRoute = currentUser ? HOME_BY_ROLE[currentUser.role] : "/";
@@ -19,7 +20,7 @@ export default function PageNotFound() {
 
   return (
     <div className="min-h-screen flex flex-col relative overflow-hidden">
-      {/* Ambient background — same treatment as the login page for visual continuity */}
+      {/* Ambient background */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute -top-24 -right-24 w-96 h-96 rounded-full bg-primary-100 blur-3xl opacity-40" />
         <div className="absolute top-1/3 -left-24 w-80 h-80 rounded-full bg-primary-50 blur-3xl opacity-50" />
@@ -65,7 +66,7 @@ export default function PageNotFound() {
 
           {/* Actions */}
           <div className="flex items-center justify-center gap-3 flex-wrap">
-            <button onClick={() => navigate(-1)} className="btn-secondary">
+            <button onClick={handleBack} className="btn-secondary">
               <ArrowLeft className="w-4 h-4" />
               Go back
             </button>
