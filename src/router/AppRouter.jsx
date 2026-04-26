@@ -16,6 +16,7 @@ import PageNotFound from "../pages/PageNotFound";
 import FlaggedForDischarge from "../pages/FlaggedForDischarge";
 import Assignments from "../pages/Assignmnets";
 import TodaysCheck from "../pages/TodaysCheck";
+import MyPatientsToday from "../pages/MyPatientsToday";
 
 function RequireAuth({ roles, children }) {
   const { currentUser } = useApp();
@@ -32,6 +33,7 @@ const ROUTES = [
   // Role-specific dashboards
   { path: "/nurse", element: <Nurse />, roles: ["nurse"] },
   { path: "/doctor", element: <Doctor />, roles: ["doctor"] },
+  { path: "/my-patients", element: <MyPatientsToday />, roles: ["doctor"] },
   { path: "/admin", element: <Admin />, roles: ["admin"] },
   { path: "/admin/new", element: <AdmitNew />, roles: ["admin"] },
   { path: "/dashboard", element: <Dashboard />, roles: ["head_doctor"] },

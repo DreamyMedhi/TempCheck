@@ -38,7 +38,11 @@ export default function MyPatientsToday() {
   // Filter to only patients assigned to this doctor and currently admitted
   const myPatients = useMemo(() => {
     return patients.filter(
-      (p) => p.status === "admitted" && p.assignedDoctor === currentUser?.name,
+      (p) =>
+        p.status === "admitted" &&
+        p.assignedDoctor === currentUser?.name &&
+        !p.dischargeFlagged && // skip flagged patients
+        !isDischargeEligible(p), // skip eligible patients
     );
   }, [patients, currentUser]);
 

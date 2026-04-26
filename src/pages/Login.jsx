@@ -17,12 +17,12 @@ const ROLE_META = {
   nurse: {
     icon: Thermometer,
     desc: "Record patient temperatures",
-    route: "/nurse",
+    route: "/todays-check",
   },
   doctor: {
     icon: Stethoscope,
     desc: "Review patients and flag discharges",
-    route: "/doctor",
+    route: "/my-patients",
   },
   admin: {
     icon: ClipboardList,

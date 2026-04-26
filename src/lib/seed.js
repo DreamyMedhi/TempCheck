@@ -1,139 +1,58 @@
 import { daysAgo, todayStr } from "./clinical";
 
-// Seed patients now include assigned staff for the demo. In production this
-// would be computed by the Balanced Acuity Assignment algorithm at shift start.
+// Seed data tuned for the demo — every role gets a realistic mix of patients
+// in different clinical states so the UI exercises every flow.
 export const seedPatients = [
+  // ----- Active patients for the demo -----
+
+  // Doctor's queue: ready for visit (temp done today, no visit yet, fever active so not eligible)
   {
     id: "P1041",
     name: "Aarav Sharma",
     age: 34,
     room: "12A",
-    admittedOn: daysAgo(5),
+    admittedOn: daysAgo(3),
     status: "admitted",
     assignedNurse: "Priya Sharma",
     assignedDoctor: "Dr. Rajesh Mehta",
     temps: [
       {
-        date: daysAgo(5),
+        date: daysAgo(3),
         value: 102.3,
         recordedBy: "Priya Sharma",
         time: "09:15",
       },
       {
-        date: daysAgo(4),
-        value: 101.1,
+        date: daysAgo(2),
+        value: 101.8,
         recordedBy: "Priya Sharma",
         time: "08:50",
       },
       {
-        date: daysAgo(3),
-        value: 99.8,
+        date: daysAgo(1),
+        value: 101.1,
         recordedBy: "Rohan Desai",
         time: "09:20",
       },
       {
-        date: daysAgo(2),
-        value: 99.2,
+        date: todayStr(),
+        value: 100.6,
         recordedBy: "Priya Sharma",
-        time: "09:05",
-      },
-      {
-        date: daysAgo(1),
-        value: 98.8,
-        recordedBy: "Rohan Desai",
-        time: "08:45",
+        time: "09:00",
       },
     ],
-    visits: [daysAgo(5), daysAgo(4), daysAgo(3), daysAgo(2), daysAgo(1)],
+    visits: [daysAgo(3), daysAgo(2), daysAgo(1)],
     notes: [
       {
         date: daysAgo(1),
         doctor: "Dr. Rajesh Mehta",
-        text: "Recovering well. Monitor one more day.",
+        text: "Fever slowly subsiding. Continue current treatment.",
       },
     ],
     dischargeFlagged: false,
   },
-  {
-    id: "P1042",
-    name: "Priya Nair",
-    age: 28,
-    room: "05B",
-    admittedOn: daysAgo(8),
-    status: "admitted",
-    assignedNurse: "Priya Sharma",
-    assignedDoctor: "Dr. Rajesh Mehta",
-    temps: [
-      {
-        date: daysAgo(8),
-        value: 103.5,
-        recordedBy: "Rohan Desai",
-        time: "10:00",
-      },
-      {
-        date: daysAgo(7),
-        value: 102.9,
-        recordedBy: "Priya Sharma",
-        time: "09:30",
-      },
-      {
-        date: daysAgo(6),
-        value: 100.1,
-        recordedBy: "Rohan Desai",
-        time: "09:15",
-      },
-      {
-        date: daysAgo(5),
-        value: 99.4,
-        recordedBy: "Priya Sharma",
-        time: "08:55",
-      },
-      {
-        date: daysAgo(4),
-        value: 99.1,
-        recordedBy: "Rohan Desai",
-        time: "09:10",
-      },
-      {
-        date: daysAgo(3),
-        value: 98.9,
-        recordedBy: "Priya Sharma",
-        time: "09:00",
-      },
-      {
-        date: daysAgo(2),
-        value: 98.7,
-        recordedBy: "Rohan Desai",
-        time: "08:40",
-      },
-      {
-        date: daysAgo(1),
-        value: 98.6,
-        recordedBy: "Priya Sharma",
-        time: "09:25",
-      },
-    ],
-    visits: [
-      daysAgo(8),
-      daysAgo(7),
-      daysAgo(6),
-      daysAgo(5),
-      daysAgo(4),
-      daysAgo(3),
-      daysAgo(2),
-      daysAgo(1),
-    ],
-    notes: [
-      {
-        date: daysAgo(3),
-        doctor: "Dr. Rajesh Mehta",
-        text: "Fever subsiding. Likely discharge candidate by end of week.",
-      },
-    ],
-    dischargeFlagged: true,
-    dischargeFlaggedBy: "Dr. Rajesh Mehta",
-    dischargeFlaggedOn: daysAgo(1),
-  },
+
+  // Nurse's queue: needs temperature today (no temp yet)
   {
     id: "P1043",
     name: "Karan Verma",
@@ -141,8 +60,8 @@ export const seedPatients = [
     room: "18C",
     admittedOn: daysAgo(2),
     status: "admitted",
-    assignedNurse: "Rohan Desai",
-    assignedDoctor: "Dr. Anil Kapoor",
+    assignedNurse: "Priya Sharma",
+    assignedDoctor: "Dr. Rajesh Mehta",
     temps: [
       {
         date: daysAgo(2),
@@ -161,12 +80,14 @@ export const seedPatients = [
     notes: [
       {
         date: daysAgo(1),
-        doctor: "Dr. Anil Kapoor",
-        text: "Started antivirals. High fever persisting.",
+        doctor: "Dr. Rajesh Mehta",
+        text: "Started antivirals. High fever persisting — monitor closely.",
       },
     ],
     dischargeFlagged: false,
   },
+
+  // Nurse's queue: fresh admission, no temp yet, no visit yet
   {
     id: "P1044",
     name: "Ananya Iyer",
@@ -181,51 +102,196 @@ export const seedPatients = [
     notes: [],
     dischargeFlagged: false,
   },
+
+  // Doctor's queue: temp done today, no visit yet, fever active (so not eligible)
   {
-    id: "P1045",
-    name: "Rohit Gupta",
-    age: 56,
-    room: "08D",
-    admittedOn: daysAgo(4),
+    id: "P1047",
+    name: "Devika Menon",
+    age: 47,
+    room: "09B",
+    admittedOn: daysAgo(2),
     status: "admitted",
     assignedNurse: "Rohan Desai",
     assignedDoctor: "Dr. Rajesh Mehta",
     temps: [
       {
-        date: daysAgo(4),
-        value: 102.1,
+        date: daysAgo(2),
+        value: 102.7,
         recordedBy: "Rohan Desai",
-        time: "10:15",
+        time: "10:30",
       },
       {
-        date: daysAgo(3),
-        value: 101.5,
+        date: daysAgo(1),
+        value: 101.4,
         recordedBy: "Priya Sharma",
         time: "09:00",
       },
       {
-        date: daysAgo(2),
-        value: 99.9,
-        recordedBy: "Rohan Desai",
-        time: "08:30",
-      },
-      {
-        date: daysAgo(1),
-        value: 99.3,
-        recordedBy: "Priya Sharma",
-        time: "09:10",
-      },
-      {
         date: todayStr(),
-        value: 99.1,
-        recordedBy: "Priya Sharma",
-        time: "09:05",
+        value: 100.9,
+        recordedBy: "Rohan Desai",
+        time: "08:45",
       },
     ],
-    visits: [daysAgo(4), daysAgo(3), daysAgo(2), daysAgo(1)],
+    visits: [daysAgo(2), daysAgo(1)],
     notes: [],
     dischargeFlagged: false,
   },
+
+  // Nurse's queue: needs temperature, fever yesterday so not yet eligible
+  {
+    id: "P1048",
+    name: "Sanjay Gupta",
+    age: 38,
+    room: "15C",
+    admittedOn: daysAgo(3),
+    status: "admitted",
+    assignedNurse: "Rohan Desai",
+    assignedDoctor: "Dr. Anil Kapoor",
+    temps: [
+      {
+        date: daysAgo(3),
+        value: 102.9,
+        recordedBy: "Priya Sharma",
+        time: "09:30",
+      },
+      {
+        date: daysAgo(2),
+        value: 102.1,
+        recordedBy: "Rohan Desai",
+        time: "09:00",
+      },
+      {
+        date: daysAgo(1),
+        value: 100.8,
+        recordedBy: "Priya Sharma",
+        time: "08:50",
+      },
+    ],
+    visits: [daysAgo(3), daysAgo(2), daysAgo(1)],
+    notes: [],
+    dischargeFlagged: false,
+  },
+
+  // Doctor's queue: visited today (so it shows in "Visited Today" section)
+  {
+    id: "P1049",
+    name: "Reema Banerjee",
+    age: 29,
+    room: "11D",
+    admittedOn: daysAgo(2),
+    status: "admitted",
+    assignedNurse: "Priya Sharma",
+    assignedDoctor: "Dr. Rajesh Mehta",
+    temps: [
+      {
+        date: daysAgo(2),
+        value: 102.0,
+        recordedBy: "Priya Sharma",
+        time: "10:15",
+      },
+      {
+        date: daysAgo(1),
+        value: 101.2,
+        recordedBy: "Rohan Desai",
+        time: "09:00",
+      },
+      {
+        date: todayStr(),
+        value: 100.5,
+        recordedBy: "Priya Sharma",
+        time: "08:30",
+      },
+    ],
+    visits: [daysAgo(2), daysAgo(1), todayStr()],
+    notes: [
+      {
+        date: todayStr(),
+        doctor: "Dr. Rajesh Mehta",
+        text: "Improving steadily. Likely discharge candidate by end of week.",
+      },
+    ],
+    dischargeFlagged: false,
+  },
+
+  // ----- Already in the discharge pipeline -----
+
+  // Flagged for discharge — visible only in the Discharge Queue (Doctor / Head Doctor)
+  {
+    id: "P1042",
+    name: "Priya Nair",
+    age: 28,
+    room: "05B",
+    admittedOn: daysAgo(7),
+    status: "admitted",
+    assignedNurse: "Priya Sharma",
+    assignedDoctor: "Dr. Rajesh Mehta",
+    temps: [
+      {
+        date: daysAgo(7),
+        value: 103.5,
+        recordedBy: "Rohan Desai",
+        time: "10:00",
+      },
+      {
+        date: daysAgo(6),
+        value: 102.9,
+        recordedBy: "Priya Sharma",
+        time: "09:30",
+      },
+      {
+        date: daysAgo(5),
+        value: 100.1,
+        recordedBy: "Rohan Desai",
+        time: "09:15",
+      },
+      {
+        date: daysAgo(4),
+        value: 99.4,
+        recordedBy: "Priya Sharma",
+        time: "08:55",
+      },
+      {
+        date: daysAgo(3),
+        value: 99.1,
+        recordedBy: "Rohan Desai",
+        time: "09:10",
+      },
+      {
+        date: daysAgo(2),
+        value: 98.9,
+        recordedBy: "Priya Sharma",
+        time: "09:00",
+      },
+      {
+        date: daysAgo(1),
+        value: 98.7,
+        recordedBy: "Rohan Desai",
+        time: "08:40",
+      },
+    ],
+    visits: [
+      daysAgo(7),
+      daysAgo(6),
+      daysAgo(5),
+      daysAgo(4),
+      daysAgo(3),
+      daysAgo(2),
+      daysAgo(1),
+    ],
+    notes: [
+      {
+        date: daysAgo(2),
+        doctor: "Dr. Rajesh Mehta",
+        text: "Fever subsiding. Likely discharge candidate by end of week.",
+      },
+    ],
+    dischargeFlagged: true,
+    dischargeFlaggedBy: "Dr. Rajesh Mehta",
+    dischargeFlaggedOn: daysAgo(1),
+  },
+
+  // Eligible for discharge but not yet flagged — auto-flag will fire on next reading
   {
     id: "P1046",
     name: "Meera Joshi",
@@ -282,8 +348,13 @@ export const seedPatients = [
       daysAgo(1),
     ],
     notes: [],
-    dischargeFlagged: false,
+    dischargeFlagged: true,
+    dischargeFlaggedBy: "System (auto)",
+    dischargeFlaggedOn: daysAgo(1),
   },
+
+  // ----- Historical (closed) cases for the dashboard mortality math -----
+
   {
     id: "P1038",
     name: "Vikram Singh",
@@ -294,6 +365,36 @@ export const seedPatients = [
     assignedNurse: null,
     assignedDoctor: null,
     dischargedOn: daysAgo(2),
+    temps: [],
+    visits: [],
+    notes: [],
+    dischargeFlagged: false,
+  },
+  {
+    id: "P1039",
+    name: "Anita Krishnan",
+    age: 52,
+    room: "—",
+    admittedOn: daysAgo(12),
+    status: "discharged",
+    assignedNurse: null,
+    assignedDoctor: null,
+    dischargedOn: daysAgo(4),
+    temps: [],
+    visits: [],
+    notes: [],
+    dischargeFlagged: false,
+  },
+  {
+    id: "P1040",
+    name: "Rohit Khanna",
+    age: 31,
+    room: "—",
+    admittedOn: daysAgo(10),
+    status: "discharged",
+    assignedNurse: null,
+    assignedDoctor: null,
+    dischargedOn: daysAgo(3),
     temps: [],
     visits: [],
     notes: [],
