@@ -16,16 +16,20 @@ import {
   DoorOpen,
   Menu,
   X,
+  ListChecks,
+  UserCheck,
 } from "lucide-react";
 
 const NAV_BY_ROLE = {
   nurse: [
-    { to: "/nurse", label: "Temperature Queue", icon: Thermometer },
+    { to: "/todays-check", label: "My Patients Today", icon: ListChecks },
+    { to: "/nurse", label: "All Temperatures", icon: Thermometer },
     { to: "/patients", label: "All Patients", icon: UsersIcon },
     { to: "/rooms", label: "Rooms", icon: BedDouble },
   ],
   doctor: [
-    { to: "/doctor", label: "Visit Queue", icon: Stethoscope },
+    { to: "/my-patients", label: "My Patients Today", icon: ListChecks },
+    { to: "/doctor", label: "All Visits", icon: Stethoscope },
     { to: "/discharge-queue", label: "Discharge Queue", icon: DoorOpen },
     { to: "/patients", label: "All Patients", icon: UsersIcon },
     { to: "/rooms", label: "Rooms", icon: BedDouble },
@@ -33,10 +37,12 @@ const NAV_BY_ROLE = {
   admin: [
     { to: "/admin", label: "Admissions & Discharge", icon: ClipboardList },
     { to: "/admin/new", label: "Admit New Patient", icon: UserPlus },
+    { to: "/assignments", label: "Assignments", icon: UserCheck },
     { to: "/rooms", label: "Rooms", icon: BedDouble },
   ],
   head_doctor: [
     { to: "/dashboard", label: "Facility Dashboard", icon: LayoutDashboard },
+    { to: "/assignments", label: "Assignments", icon: UserCheck },
     { to: "/discharge-queue", label: "Discharge Queue", icon: DoorOpen },
     { to: "/patients", label: "All Patients", icon: UsersIcon },
     { to: "/rooms", label: "Rooms", icon: BedDouble },

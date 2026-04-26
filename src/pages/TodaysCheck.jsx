@@ -3,43 +3,33 @@ import { useApp } from "../context/AppContext";
 import Layout from "../components/Layout";
 import Modal from "../components/Modal";
 import PatientCard from "../components/PatientCard";
+
 import { MIN_TEMP, MAX_TEMP, FEVER_THRESHOLD } from "../lib/constants";
-import { AlertTriangle, CheckCircle2, Search } from "lucide-react";
+import { AlertTriangle, CheckCircle2, ClipboardList } from "lucide-react";
 import {
   hasTempToday,
   isFever,
   todayStr,
   isDischargeEligible,
 } from "../lib/clinical";
-export default function NursePage() {
-  const { patients, recordTemperature, showToast } = useApp();
+export default function TodaysCheck() {
+  const { patients, currentUser, recordTemperature, showToast } = useApp();
   const [selected, setSelected] = useState(null);
   const [tempInput, setTempInput] = useState("");
   const [overrideConfirm, setOverrideConfirm] = useState(false);
-  const [search, setSearch] = useState("");
 
-  const admitted = patients.filter(
-    (p) =>
-      p.status === "admitted" && !p.dischargeFlagged && !isDischargeEligible(p),
-  );
-  const pending = admitted.filter((p) => !hasTempToday(p));
-  const done = admitted.filter((p) => hasTempToday(p));
+  const myPatients = useMemo(() => {
+    return patients.filter(
+      (p) =>
+        p.status === "admitted" &&
+        p.assignedNurse === currentUser?.name &&
+        !p.dischargeFlagged && // skip flagged patients
+        !isDischargeEligible(p), // skip eligible patients
+    );
+  }, [patients, currentUser]);
 
-  const filtered = useMemo(() => {
-    const q = search.toLowerCase();
-    if (!q) return { pending, done };
-    const match = (p) =>
-      p.name.toLowerCase().includes(q) ||
-      p.id.toLowerCase().includes(q) ||
-      p.room.toLowerCase().includes(q);
-    return { pending: pending.filter(match), done: done.filter(match) };
-  }, [pending, done, search]);
-
-  const openRecord = (patient) => {
-    setSelected(patient);
-    setTempInput("");
-    setOverrideConfirm(false);
-  };
+  const pending = myPatients.filter((p) => !hasTempToday(p));
+  const done = myPatients.filter((p) => hasTempToday(p));
 
   const handleSubmit = () => {
     const val = parseFloat(tempInput);
@@ -62,82 +52,113 @@ export default function NursePage() {
     recordTemperature(selected.id, val, !!existing);
     showToast(`Temperature recorded for ${selected.name}`, "success");
     setSelected(null);
+    setTempInput("");
+    setOverrideConfirm(false);
   };
 
   return (
     <Layout
-      title="Temperature Queue"
-      subtitle={`${pending.length} patients pending · ${done.length} completed today`}
+      title="Today's Check"
+      subtitle={`${myPatients.length} patient${myPatients.length === 1 ? "" : "s"} assigned to you · ${pending.length} pending`}
     >
-      {/* Search */}
-      <div className="mb-6 relative max-w-md">
-        <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-        <input
-          className="input pl-9"
-          placeholder="Search by name, ID, or room"
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-        />
+      {/* Context banner */}
+      <div className="mb-6 rounded-lg border border-primary-200 bg-primary-50/40 px-4 py-3 flex gap-3 text-sm">
+        <ClipboardList className="w-5 h-5 flex-shrink-0 text-primary-600" />
+        <div className="text-primary-900">
+          These are the patients assigned to you for today's shift. Once you
+          record a temperature, the patient is automatically queued for their
+          assigned doctor's review.
+        </div>
       </div>
 
-      {/* Pending section */}
-      <section className="mb-10">
-        <div className="flex items-center gap-2 mb-4">
-          <div className="w-2 h-2 rounded-full bg-warning" />
-          <h2 className="text-sm font-semibold text-slate-900 uppercase tracking-wide">
-            Pending today · {filtered.pending.length}
-          </h2>
+      {/* Empty state */}
+      {myPatients.length === 0 ? (
+        <div className="card p-12 text-center">
+          <div className="w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center mx-auto mb-4">
+            <CheckCircle2 className="w-6 h-6 text-slate-400" />
+          </div>
+          <div className="font-display text-xl text-slate-900 mb-1">
+            No patients assigned today
+          </div>
+          <div className="text-sm text-slate-500 max-w-md mx-auto">
+            Either you're not on shift today, or the assignment system hasn't
+            run yet. Contact the Head Doctor if this seems wrong.
+          </div>
         </div>
-        {filtered.pending.length === 0 ? (
-          <div className="card p-8 text-center">
-            <CheckCircle2 className="w-10 h-10 text-success mx-auto mb-3" />
-            <div className="font-medium text-slate-900">All caught up</div>
-            <div className="text-sm text-slate-500 mt-1">
-              Every admitted patient has had their temperature recorded today.
+      ) : (
+        <>
+          {/* Pending */}
+          <section className="mb-10">
+            <div className="flex items-center gap-2 mb-4">
+              <div className="w-2 h-2 rounded-full bg-warning" />
+              <h2 className="text-sm font-semibold text-slate-900 uppercase tracking-wide">
+                Pending today · {pending.length}
+              </h2>
             </div>
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-            {filtered.pending.map((p) => (
-              <PatientCard
-                key={p.id}
-                patient={p}
-                onClick={() => openRecord(p)}
-              />
-            ))}
-          </div>
-        )}
-      </section>
+            {pending.length === 0 ? (
+              <div className="card p-8 text-center">
+                <CheckCircle2 className="w-10 h-10 text-success mx-auto mb-3" />
+                <div className="font-medium text-slate-900">All caught up</div>
+                <div className="text-sm text-slate-500 mt-1">
+                  Every patient assigned to you has had their temperature
+                  recorded today.
+                </div>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+                {pending.map((p) => (
+                  <PatientCard
+                    key={p.id}
+                    patient={p}
+                    onClick={() => setSelected(p)}
+                  />
+                ))}
+              </div>
+            )}
+          </section>
 
-      {/* Completed section */}
-      {filtered.done.length > 0 && (
-        <section>
-          <div className="flex items-center gap-2 mb-4">
-            <div className="w-2 h-2 rounded-full bg-success" />
-            <h2 className="text-sm font-semibold text-slate-900 uppercase tracking-wide">
-              Completed today · {filtered.done.length}
-            </h2>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-            {filtered.done.map((p) => (
-              <PatientCard
-                key={p.id}
-                patient={p}
-                onClick={() => openRecord(p)}
-              />
-            ))}
-          </div>
-        </section>
+          {/* Done */}
+          {done.length > 0 && (
+            <section>
+              <div className="flex items-center gap-2 mb-4">
+                <div className="w-2 h-2 rounded-full bg-success" />
+                <h2 className="text-sm font-semibold text-slate-900 uppercase tracking-wide">
+                  Completed today · {done.length}
+                </h2>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+                {done.map((p) => (
+                  <PatientCard
+                    key={p.id}
+                    patient={p}
+                    onClick={() => setSelected(p)}
+                  />
+                ))}
+              </div>
+            </section>
+          )}
+        </>
       )}
 
       {/* Record modal */}
       <Modal
         open={!!selected}
-        onClose={() => setSelected(null)}
+        onClose={() => {
+          setSelected(null);
+          setTempInput("");
+          setOverrideConfirm(false);
+        }}
         title={selected ? `Record temperature — ${selected.name}` : ""}
         footer={
           <>
-            <button className="btn-secondary" onClick={() => setSelected(null)}>
+            <button
+              className="btn-secondary"
+              onClick={() => {
+                setSelected(null);
+                setTempInput("");
+                setOverrideConfirm(false);
+              }}
+            >
               Cancel
             </button>
             <button className="btn-primary" onClick={handleSubmit}>
@@ -188,7 +209,6 @@ export default function NursePage() {
               </p>
             </div>
 
-            {/* Fever preview */}
             {tempInput &&
               !isNaN(parseFloat(tempInput)) &&
               parseFloat(tempInput) >= MIN_TEMP &&
@@ -212,7 +232,6 @@ export default function NursePage() {
                 </div>
               )}
 
-            {/* Duplicate warning */}
             {overrideConfirm && (
               <div className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900 flex gap-3">
                 <AlertTriangle className="w-5 h-5 flex-shrink-0 text-warning" />
@@ -233,8 +252,7 @@ export default function NursePage() {
                           ?.recordedBy
                       }
                     </b>
-                    . Saving will overwrite the existing entry and log a
-                    correction.
+                    . Saving will overwrite the existing entry.
                   </div>
                 </div>
               </div>
